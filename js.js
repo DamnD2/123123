@@ -1,7 +1,46 @@
-const signupForm = signupFormWrapper.querySelector('.signup');
-const users = new LocalStorageAdapter('users', 'array');
+class Form {
+  constructor(selector, validationConfig) {
+    this.form = document.querySelector(selector);
+    this.config = validationConfig;
+  }
 
-signupFormConfig = [
+  validate () {
+    let successfull = true;
+    const { form, config } = this;
+
+    config.forEach(({ name, validators }) => {
+      const field = form.querySelector(`.${name}`);
+      const errorField = form.querySelector(`.${name}-error`);
+      const fieldValue = field.value;
+      const errors = validators.reduce((accum, currentValidator) => {
+        const { errorMessage, validator } = currentValidator;
+        accum += validator(fieldValue) ? '' : errorMessage;
+
+        return accum;
+      }, '');
+
+      errorField.innerText = errors;
+
+      if (errors) {
+        field.classList.add('error');
+        successfull = false;
+      } else {
+        field.classList.remove('error');
+      }
+    });
+
+    return successfull;
+  }
+
+  clear () {
+    this.config.forEach(({ name }) => {
+      const field = this.form.querySelector(`.${name}`);
+      field.value = '';
+    });
+  }
+}
+
+const signupFormConfig = [
   {
     name: 'email',
     validators: [
@@ -60,46 +99,14 @@ signupFormConfig = [
   },
 ];
 
-signupForm.addEventListener('submit',() => formValidation(signupFormConfig));
+const signupForm = new Form('.signup', signupFormConfig);
 
-function formValidation(formConfig) {
-  let successfully = true;
-  const form = event.currentTarget;
-
-  formConfig.forEach(({ name, validators }) => {
-    const field = form.querySelector(`.${name}`);
-    const errorField = form.querySelector(`.${name}-error`);
-    const fieldValue = field.value;
-    const errors = validators.reduce((accum, currentValidator) => {
-      const { errorMessage, validator } = currentValidator;
-      accum += validator(fieldValue) ? '' : errorMessage;
-
-      return accum;
-    }, '');
-
-    errorField.innerText = errors;
-
-    if (errors) {
-      field.classList.add('error');
-      successfully = false;
-    } else {
-      field.classList.remove('error');
-    }
-  });
-
-  if (successfully) {
-    const newUser = formConfig.reduce((accum, { name }) => {
-      const field = form.querySelector(`.${name}`);
-      accum[name] = field.value;
-      return accum;
-    }, {});
-    const fields = formConfig.reduce((accum, { name }) => {
-      const field = form.querySelector(`.${name}`);
-      accum.push(field);
-      return accum;
-    }, [])
-
-    users.setValue(newUser);
-    clearFields(...fields);
+signupForm.form.addEventListener('submit',() => {
+  const isValid = signupForm.validate();
+  if (isValid) {
+    console.log('OK');
+    signupForm.clear();
+  } else {
+    console.log('NE OK');
   }
-}
+});
