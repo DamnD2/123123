@@ -2,15 +2,29 @@ class Form {
   constructor(selector, validationConfig) {
     this.form = document.querySelector(selector);
     this.config = validationConfig;
+    this.fields = {};
+    this.init();
+  }
+
+  _init () {
+    const { form, config, fields } = this;
+
+    config.forEach(({name}) => {
+      const field = form.querySelector(`.${name}`);
+      const errorField = form.querySelector(`.${name}-error`);
+
+      fields[name] = field;
+      fields[`${name}-error`] = errorField;
+    });
   }
 
   validate () {
     let successfull = true;
-    const { form, config } = this;
+    const { config, fields } = this;
 
     config.forEach(({ name, validators }) => {
-      const field = form.querySelector(`.${name}`);
-      const errorField = form.querySelector(`.${name}-error`);
+      const field = fields[name];
+      const errorField = fields[`${name}-error`];
       const fieldValue = field.value;
       const errors = validators.reduce((accum, currentValidator) => {
         const { errorMessage, validator } = currentValidator;
@@ -34,7 +48,7 @@ class Form {
 
   clear () {
     this.config.forEach(({ name }) => {
-      const field = this.form.querySelector(`.${name}`);
+      const field = this.fields[name];
       field.value = '';
     });
   }
