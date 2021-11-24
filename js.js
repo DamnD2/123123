@@ -60,10 +60,11 @@ signupFormConfig = [
   },
 ];
 
-signupForm.addEventListener('submit',() => handleSignupSubmit(signupFormConfig, signupForm));
+signupForm.addEventListener('submit',() => formValidation(signupFormConfig));
 
-function handleSignupSubmit(formConfig, form) {
+function formValidation(formConfig) {
   let successfully = true;
+  const form = event.currentTarget;
 
   formConfig.forEach(({ name, validators }) => {
     const field = form.querySelector(`.${name}`);
